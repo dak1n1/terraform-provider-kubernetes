@@ -17,7 +17,7 @@ import (
 
 func TestAccKubernetesDefaultServiceAccount_basic(t *testing.T) {
 	var conf api.ServiceAccount
-	namespace := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	namespace := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "kubernetes_default_service_account.test"
 
 	resource.Test(t, resource.TestCase{
@@ -60,7 +60,7 @@ func TestAccKubernetesDefaultServiceAccount_basic(t *testing.T) {
 
 func TestAccKubernetesDefaultServiceAccount_secrets(t *testing.T) {
 	var conf api.ServiceAccount
-	namespace := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	namespace := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },

@@ -14,7 +14,7 @@ import (
 
 func TestAccKubernetesIngress_basic(t *testing.T) {
 	var conf api.Ingress
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -65,7 +65,7 @@ func TestAccKubernetesIngress_basic(t *testing.T) {
 
 func TestAccKubernetesIngress_TLS(t *testing.T) {
 	var conf api.Ingress
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -110,7 +110,7 @@ func TestAccKubernetesIngress_TLS(t *testing.T) {
 
 func TestAccKubernetesIngress_InternalKey(t *testing.T) {
 	var conf api.Ingress
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -151,7 +151,7 @@ func TestAccKubernetesIngress_InternalKey(t *testing.T) {
 
 func TestAccKubernetesIngress_WaitForLoadBalancerGoogleCloud(t *testing.T) {
 	var conf api.Ingress
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t); skipIfNoGoogleCloudSettingsFound(t) },

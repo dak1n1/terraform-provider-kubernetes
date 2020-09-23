@@ -17,7 +17,7 @@ const statefulSetTestResourceName = "kubernetes_stateful_set.test"
 
 func TestAccKubernetesStatefulSet_basic(t *testing.T) {
 	var conf api.StatefulSet
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: statefulSetTestResourceName,
@@ -37,7 +37,7 @@ func TestAccKubernetesStatefulSet_basic(t *testing.T) {
 }
 func TestAccKubernetesStatefulSet_basic_idempotency(t *testing.T) {
 	var conf api.StatefulSet
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: statefulSetTestResourceName,
@@ -66,7 +66,7 @@ func TestAccKubernetesStatefulSet_basic_idempotency(t *testing.T) {
 
 func TestAccKubernetesStatefulSet_update_image(t *testing.T) {
 	var conf api.StatefulSet
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: statefulSetTestResourceName,
@@ -93,7 +93,7 @@ func TestAccKubernetesStatefulSet_update_image(t *testing.T) {
 
 func TestAccKubernetesStatefulSet_update_template_selector_labels(t *testing.T) {
 	var conf api.StatefulSet
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: statefulSetTestResourceName,
@@ -125,7 +125,7 @@ func TestAccKubernetesStatefulSet_update_template_selector_labels(t *testing.T) 
 
 func TestAccKubernetesStatefulSet_update_replicas_to_five(t *testing.T) {
 	var conf api.StatefulSet
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: statefulSetTestResourceName,
@@ -153,7 +153,7 @@ func TestAccKubernetesStatefulSet_update_replicas_to_five(t *testing.T) {
 
 func TestAccKubernetesStatefulSet_update_replicas_to_zero(t *testing.T) {
 	var conf api.StatefulSet
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: statefulSetTestResourceName,
@@ -181,7 +181,7 @@ func TestAccKubernetesStatefulSet_update_replicas_to_zero(t *testing.T) {
 
 func TestAccKubernetesStatefulSet_update_rolling_update_partition(t *testing.T) {
 	var conf api.StatefulSet
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: statefulSetTestResourceName,
@@ -209,7 +209,7 @@ func TestAccKubernetesStatefulSet_update_rolling_update_partition(t *testing.T) 
 
 func TestAccKubernetesStatefulSet_update_update_strategy_on_delete(t *testing.T) {
 	var conf api.StatefulSet
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: statefulSetTestResourceName,
@@ -239,7 +239,7 @@ func TestAccKubernetesStatefulSet_update_update_strategy_on_delete(t *testing.T)
 }
 func TestAccKubernetesStatefulSet_update_update_strategy_rolling_update(t *testing.T) {
 	var conf api.StatefulSet
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: statefulSetTestResourceName,
@@ -270,7 +270,7 @@ func TestAccKubernetesStatefulSet_update_update_strategy_rolling_update(t *testi
 
 func TestAccKubernetesStatefulSet_update_pod_template(t *testing.T) {
 	var conf api.StatefulSet
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: statefulSetTestResourceName,
@@ -315,7 +315,7 @@ func TestAccKubernetesStatefulSet_update_pod_template(t *testing.T) {
 
 func TestAccKubernetesStatefulSet_waitForRollout(t *testing.T) {
 	var conf api.StatefulSet
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: statefulSetTestResourceName,

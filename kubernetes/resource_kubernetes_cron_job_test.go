@@ -14,7 +14,7 @@ import (
 
 func TestAccKubernetesCronJob_basic(t *testing.T) {
 	var conf v1beta1.CronJob
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -74,7 +74,7 @@ func TestAccKubernetesCronJob_basic(t *testing.T) {
 
 func TestAccKubernetesCronJob_extra(t *testing.T) {
 	var conf v1beta1.CronJob
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },

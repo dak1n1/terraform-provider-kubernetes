@@ -20,7 +20,7 @@ func ttlAfterDisabled() (bool, string) {
 
 func TestAccKubernetesJob_wait_for_completion(t *testing.T) {
 	var conf api.Job
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -58,7 +58,7 @@ func testAccCheckJobWaited(minDuration time.Duration) func(*terraform.State) err
 
 func TestAccKubernetesJob_basic(t *testing.T) {
 	var conf api.Job
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -117,7 +117,7 @@ func TestAccKubernetesJob_ttl_seconds_after_finished(t *testing.T) {
 	}
 
 	var conf api.Job
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },

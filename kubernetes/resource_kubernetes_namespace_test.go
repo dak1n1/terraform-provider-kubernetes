@@ -16,7 +16,7 @@ import (
 
 func TestAccKubernetesNamespace_basic(t *testing.T) {
 	var conf api.Namespace
-	nsName := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	nsName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "kubernetes_namespace.test"
 
 	resource.Test(t, resource.TestCase{
@@ -157,7 +157,7 @@ func TestAccKubernetesNamespace_generatedName(t *testing.T) {
 
 func TestAccKubernetesNamespace_withSpecialCharacters(t *testing.T) {
 	var conf api.Namespace
-	nsName := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	nsName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -196,7 +196,7 @@ func TestAccKubernetesNamespace_withSpecialCharacters(t *testing.T) {
 
 func TestAccKubernetesNamespace_deleteTimeout(t *testing.T) {
 	var conf api.Namespace
-	nsName := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	nsName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },

@@ -15,7 +15,7 @@ import (
 
 func TestAccKubernetesServiceAccount_basic(t *testing.T) {
 	var conf api.ServiceAccount
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "kubernetes_service_account.test"
 
 	resource.Test(t, resource.TestCase{
@@ -68,7 +68,7 @@ func TestAccKubernetesServiceAccount_basic(t *testing.T) {
 
 func TestAccKubernetesServiceAccount_automount(t *testing.T) {
 	var conf api.ServiceAccount
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -114,7 +114,7 @@ func TestAccKubernetesServiceAccount_automount(t *testing.T) {
 
 func TestAccKubernetesServiceAccount_update(t *testing.T) {
 	var conf api.ServiceAccount
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },

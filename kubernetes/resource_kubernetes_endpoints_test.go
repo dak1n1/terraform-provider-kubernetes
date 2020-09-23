@@ -16,7 +16,7 @@ import (
 
 func TestAccKubernetesEndpoints_basic(t *testing.T) {
 	var conf api.Endpoints
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "kubernetes_endpoints.test"
 
 	resource.Test(t, resource.TestCase{
