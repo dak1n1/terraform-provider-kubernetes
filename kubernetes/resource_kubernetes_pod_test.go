@@ -94,49 +94,20 @@ func TestAccKubernetesPod_initContainer_updateForcesNew(t *testing.T) {
 				Config: testAccKubernetesPodConfigWithInitContainer(podName, image1),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckKubernetesPodExists("kubernetes_pod.test", &conf1),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "metadata.0.annotations.%", "0"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "metadata.0.labels.%", "1"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "metadata.0.labels.app", "pod_label"),
 					resource.TestCheckResourceAttr("kubernetes_pod.test", "metadata.0.name", podName),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.init_container.0.name", "install"),
+					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.container.0.name", "busybox"),
+					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.init_container.0.name", "containername"),
 					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.init_container.0.image", image1),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.init_container.0.command.0", "wget"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.init_container.0.command.1", "-O"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.init_container.0.command.2", "/work-dir/index.html"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.init_container.0.command.3", "http://kubernetes.io"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.init_container.0.volume_mount.0.name", "workdir"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.init_container.0.volume_mount.0.mount_path", "/work-dir"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.dns_config.#", "1"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.dns_config.0.nameservers.#", "3"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.dns_config.0.nameservers.0", "1.1.1.1"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.dns_config.0.nameservers.1", "8.8.8.8"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.dns_config.0.nameservers.2", "9.9.9.9"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.dns_config.0.searches.#", "1"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.dns_config.0.searches.0", "kubernetes.io"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.dns_config.0.option.#", "2"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.dns_config.0.option.0.name", "ndots"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.dns_config.0.option.0.value", "1"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.dns_config.0.option.1.name", "use-vc"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.dns_config.0.option.1.value", ""),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.dns_policy", "Default"),
 				),
 			},
 			{
 				Config: testAccKubernetesPodConfigWithInitContainer(podName, image2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckKubernetesPodExists("kubernetes_pod.test", &conf2),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "metadata.0.annotations.%", "0"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "metadata.0.labels.%", "1"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "metadata.0.labels.app", "pod_label"),
 					resource.TestCheckResourceAttr("kubernetes_pod.test", "metadata.0.name", podName),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.init_container.0.name", "install"),
+					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.container.0.name", "busybox"),
+					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.init_container.0.name", "containername"),
 					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.init_container.0.image", image2),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.init_container.0.command.0", "wget"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.init_container.0.command.1", "-O"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.init_container.0.command.2", "/work-dir/index.html"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.init_container.0.command.3", "http://kubernetes.io"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.init_container.0.volume_mount.0.name", "workdir"),
-					resource.TestCheckResourceAttr("kubernetes_pod.test", "spec.0.init_container.0.volume_mount.0.mount_path", "/work-dir"),
 					testAccCheckKubernetesPodForceNew(&conf1, &conf2, true),
 				),
 			},
@@ -1204,63 +1175,51 @@ resource "kubernetes_pod" "test" {
 `, secretName, secretName, configMapName, configMapName, podName, imageName)
 }
 
-func testAccKubernetesPodConfigWithInitContainer(podName string, image string) string {
+func testAccKubernetesPodConfigWithInitContainer(podName, image string) string {
 	return fmt.Sprintf(`resource "kubernetes_pod" "test" {
   metadata {
-    labels = {
-      app = "pod_label"
-    }
-
     name = "%s"
   }
 
   spec {
-	automount_service_account_token = false
+  automount_service_account_token = false
+   container {
+     name  = "busybox"
+     image = "busybox"
+     command = ["sh", "-c", "echo The app is running! && sleep 3600"]
 
-	container {
-      name  = "nginx"
-      image = "nginx"
-
-      port {
-        container_port = 80
-      }
-
-      volume_mount {
-        name       = "workdir"
-        mount_path = "/usr/share/nginx/html"
-      }
-    }
+     resources {
+       requests {
+         memory = "64Mi"
+         cpu    = "50m"
+       }
+     }
+   }
 
     init_container {
-      name    = "install"
+      name    = "containername"
       image   = "%s"
-      command = ["wget", "-O", "/work-dir/index.html", "http://kubernetes.io"]
+      command = ["sh", "-c", "until nslookup init-service.default.svc.cluster.local; do echo waiting for init-service; sleep 2; done"]
 
-      volume_mount {
-        name       = "workdir"
-        mount_path = "/work-dir"
+      resources {
+        requests {
+          memory = "64Mi"
+          cpu    = "50m"
+        }
       }
     }
+  }
+}
 
-    dns_config {
-      nameservers = ["1.1.1.1", "8.8.8.8", "9.9.9.9"]
-      searches    = ["kubernetes.io"]
+resource "kubernetes_service" "test" {
+  metadata {
+    name = "init-service"
+  }
 
-      option {
-        name  = "ndots"
-        value = 1
-      }
-
-      option {
-        name = "use-vc"
-      }
-    }
-
-    dns_policy = "Default"
-
-    volume {
-      name = "workdir"
-      empty_dir {}
+  spec {
+    port {
+      port        = 8080
+      target_port = 80
     }
   }
 }

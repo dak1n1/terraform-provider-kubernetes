@@ -15,6 +15,7 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 			Type:        schema.TypeList,
 			Optional:    true,
 			MaxItems:    1,
+			ForceNew:    !isUpdatable,
 			Description: "Optional pod scheduling constraints.",
 			Elem: &schema.Resource{
 				Schema: affinityFields(),
@@ -24,6 +25,7 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 			Type:         schema.TypeInt,
 			Optional:     true,
 			Computed:     isComputed,
+			ForceNew:     false, // always updatable
 			ValidateFunc: validatePositiveInteger,
 			Description:  "Optional duration in seconds the pod may be active on the node relative to StartTime before the system will actively try to mark it failed and kill associated containers. Value must be a positive integer.",
 			Deprecated:   deprecatedMessage,
@@ -32,16 +34,18 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Default:     true,
+			ForceNew:    !isUpdatable,
 			Description: "AutomountServiceAccountToken indicates whether a service account token should be automatically mounted.",
 		},
 		"container": {
 			Type:        schema.TypeList,
 			Optional:    true,
 			Computed:    isComputed,
+			ForceNew:    false, // always updatable
 			Description: "List of containers belonging to the pod. Containers cannot currently be added or removed. There must be at least one container in a Pod. Cannot be updated. More info: http://kubernetes.io/docs/user-guide/containers",
 			Deprecated:  deprecatedMessage,
 			Elem: &schema.Resource{
-				Schema: containerFields(isUpdatable, false),
+				Schema: containerFields(isUpdatable),
 			},
 		},
 		"readiness_gate": {
@@ -65,17 +69,18 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 			Type:        schema.TypeList,
 			Optional:    true,
 			Computed:    isComputed,
-			ForceNew:    true,
+			ForceNew:    !isUpdatable,
 			Description: "List of init containers belonging to the pod. Init containers always run to completion and each must complete successfully before the next is started. More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/",
 			Deprecated:  deprecatedMessage,
 			Elem: &schema.Resource{
-				Schema: containerFields(isUpdatable, true),
+				Schema: containerFields(isUpdatable),
 			},
 		},
 		"dns_policy": {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Computed:    isComputed,
+			ForceNew:    !isUpdatable,
 			Default:     conditionalDefault(!isComputed, "ClusterFirst"),
 			Description: "Set DNS policy for containers within the pod. Valid values are 'ClusterFirstWithHostNet', 'ClusterFirst', 'Default' or 'None'. DNS parameters given in DNSConfig will be merged with the policy selected with DNSPolicy. To have DNS options set along with hostNetwork, you have to specify DNS policy explicitly to 'ClusterFirstWithHostNet'. Optional: Defaults to 'ClusterFirst', see [Kubernetes reference](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy).",
 			Deprecated:  deprecatedMessage,
@@ -91,6 +96,7 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 						Type:        schema.TypeList,
 						Description: "A list of DNS name server IP addresses. This will be appended to the base nameservers generated from DNSPolicy. Duplicated nameservers will be removed.",
 						Optional:    true,
+						ForceNew:    !isUpdatable,
 						Elem: &schema.Schema{
 							Type:         schema.TypeString,
 							ValidateFunc: validation.IsIPAddress,
@@ -106,11 +112,13 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 									Type:        schema.TypeString,
 									Description: "Name of the option.",
 									Required:    true,
+									ForceNew:    !isUpdatable,
 								},
 								"value": {
 									Type:        schema.TypeString,
 									Description: "Value of the option. Optional: Defaults to empty.",
 									Optional:    true,
+									ForceNew:    !isUpdatable,
 								},
 							},
 						},
@@ -122,18 +130,18 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 						Elem: &schema.Schema{
 							Type:         schema.TypeString,
 							ValidateFunc: validateName,
+							ForceNew:     !isUpdatable,
 						},
 					},
 				},
 			},
 		},
 		"enable_service_links": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			// Kubernetes API defaults this to `true`. A non-empty plan is returned when we also set this default.
+			Type:        schema.TypeBool,
+			Optional:    true,
 			Computed:    true,
 			ForceNew:    !isUpdatable,
-			Default:     nil,
+			Default:     nil, // since we can't differentiate between unset and 'false', default this to nil
 			Description: "Enables generating environment variables for service discovery. Optional: service links are enabled by default.",
 		},
 		"host_aliases": {
@@ -148,12 +156,14 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 					"hostnames": {
 						Type:        schema.TypeList,
 						Required:    true,
+						ForceNew:    !isUpdatable,
 						Description: "Hostnames for the IP address.",
 						Elem:        &schema.Schema{Type: schema.TypeString},
 					},
 					"ip": {
 						Type:        schema.TypeString,
 						Required:    true,
+						ForceNew:    !isUpdatable,
 						Description: "IP address of the host file entry.",
 					},
 				},
@@ -163,6 +173,7 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Computed:    isComputed,
+			ForceNew:    !isUpdatable,
 			Default:     conditionalDefault(!isComputed, false),
 			Description: "Use the host's ipc namespace. Optional: Defaults to false.",
 			Deprecated:  deprecatedMessage,
@@ -171,6 +182,7 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Computed:    isComputed,
+			ForceNew:    !isUpdatable,
 			Default:     conditionalDefault(!isComputed, false),
 			Description: "Host networking requested for this pod. Use the host's network namespace. If this option is set, the ports that will be used must be specified.",
 			Deprecated:  deprecatedMessage,
@@ -180,6 +192,7 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Computed:    isComputed,
+			ForceNew:    !isUpdatable,
 			Default:     conditionalDefault(!isComputed, false),
 			Description: "Use the host's pid namespace.",
 			Deprecated:  deprecatedMessage,
@@ -189,6 +202,7 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 			Type:        schema.TypeString,
 			Optional:    true,
 			Computed:    true,
+			ForceNew:    !isUpdatable,
 			Description: "Specifies the hostname of the Pod If not specified, the pod's hostname will be set to a system-defined value.",
 			Deprecated:  deprecatedMessage,
 		},
@@ -204,6 +218,7 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 						Type:        schema.TypeString,
 						Description: "Name of the referent. More info: http://kubernetes.io/docs/user-guide/identifiers#names",
 						Required:    true,
+						ForceNew:    !isUpdatable,
 					},
 				},
 			},
@@ -212,6 +227,7 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 			Type:        schema.TypeString,
 			Optional:    true,
 			Computed:    true,
+			ForceNew:    !isUpdatable,
 			Description: "NodeName is a request to schedule this pod onto a specific node. If it is non-empty, the scheduler simply schedules this pod onto that node, assuming that it fits resource requirements.",
 			Deprecated:  deprecatedMessage,
 		},
@@ -219,6 +235,7 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 			Type:        schema.TypeMap,
 			Optional:    true,
 			Computed:    isComputed,
+			ForceNew:    !isUpdatable,
 			Description: "NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: http://kubernetes.io/docs/user-guide/node-selection.",
 			Deprecated:  deprecatedMessage,
 		},
@@ -226,6 +243,7 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 			Type:        schema.TypeString,
 			Optional:    true,
 			Computed:    isComputed,
+			ForceNew:    !isUpdatable,
 			Description: `If specified, indicates the pod's priority. "system-node-critical" and "system-cluster-critical" are two special keywords which indicate the highest priorities with the former being the highest priority. Any other name must be defined by creating a PriorityClass object with that name. If not specified, the pod priority will be default or zero if there is no default.`,
 			Deprecated:  deprecatedMessage,
 		},
@@ -233,6 +251,7 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 			Type:        schema.TypeString,
 			Optional:    true,
 			Computed:    isComputed,
+			ForceNew:    !isUpdatable,
 			Default:     conditionalDefault(!isComputed, "Always"),
 			Description: "Restart policy for all containers within the pod. One of Always, OnFailure, Never. More info: http://kubernetes.io/docs/user-guide/pod-states#restartpolicy.",
 			Deprecated:  deprecatedMessage,
@@ -250,21 +269,25 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 						Type:        schema.TypeInt,
 						Description: "A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to change the ownership of that volume to be owned by the pod: 1. The owning GID will be the FSGroup 2. The setgid bit is set (new files created in the volume will be owned by FSGroup) 3. The permission bits are OR'd with rw-rw---- If unset, the Kubelet will not modify the ownership and permissions of any volume.",
 						Optional:    true,
+						ForceNew:    !isUpdatable,
 					},
 					"run_as_group": {
 						Type:        schema.TypeInt,
 						Description: "The GID to run the entrypoint of the container process. Uses runtime default if unset. May also be set in SecurityContext. If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence for that container.",
 						Optional:    true,
+						ForceNew:    !isUpdatable,
 					},
 					"run_as_non_root": {
 						Type:        schema.TypeBool,
 						Description: "Indicates that the container must run as a non-root user. If true, the Kubelet will validate the image at runtime to ensure that it does not run as UID 0 (root) and fail to start the container if it does. If unset or false, no such validation will be performed. May also be set in SecurityContext. If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence.",
 						Optional:    true,
+						ForceNew:    !isUpdatable,
 					},
 					"run_as_user": {
 						Type:        schema.TypeInt,
 						Description: "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified. May also be set in SecurityContext. If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence for that container.",
 						Optional:    true,
+						ForceNew:    !isUpdatable,
 					},
 					"se_linux_options": {
 						Type:        schema.TypeList,
@@ -272,13 +295,14 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 						Optional:    true,
 						MaxItems:    1,
 						Elem: &schema.Resource{
-							Schema: seLinuxOptionsField(),
+							Schema: seLinuxOptionsField(isUpdatable),
 						},
 					},
 					"supplemental_groups": {
 						Type:        schema.TypeSet,
 						Description: "A list of groups applied to the first process run in each container, in addition to the container's primary GID. If unspecified, no groups will be added to any container.",
 						Optional:    true,
+						ForceNew:    !isUpdatable,
 						Elem: &schema.Schema{
 							Type: schema.TypeInt,
 						},
@@ -293,11 +317,13 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 									Type:        schema.TypeString,
 									Description: "Name of a property to set.",
 									Required:    true,
+									ForceNew:    !isUpdatable,
 								},
 								"value": {
 									Type:        schema.TypeString,
 									Description: "Value of a property to set.",
 									Required:    true,
+									ForceNew:    !isUpdatable,
 								},
 							},
 						},
@@ -309,6 +335,7 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 			Type:        schema.TypeString,
 			Optional:    true,
 			Computed:    true,
+			ForceNew:    !isUpdatable,
 			Description: "ServiceAccountName is the name of the ServiceAccount to use to run this pod. More info: http://releases.k8s.io/HEAD/docs/design/service_accounts.md.",
 			Deprecated:  deprecatedMessage,
 		},
@@ -316,12 +343,14 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Default:     false,
+			ForceNew:    !isUpdatable,
 			Description: "Share a single process namespace between all of the containers in a pod. When this is set containers will be able to view and signal processes from other containers in the same pod, and the first process in each container will not be assigned PID 1. HostPID and ShareProcessNamespace cannot both be set. Optional: Defaults to false.",
 		},
 		"subdomain": {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Computed:    isComputed,
+			ForceNew:    !isUpdatable,
 			Description: `If specified, the fully qualified Pod hostname will be "...svc.". If not specified, the pod will not have a domainname at all..`,
 			Deprecated:  deprecatedMessage,
 		},
@@ -329,6 +358,7 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 			Type:         schema.TypeInt,
 			Optional:     true,
 			Computed:     isComputed,
+			ForceNew:     !isUpdatable,
 			Default:      conditionalDefault(!isComputed, 30),
 			ValidateFunc: validateTerminationGracePeriodSeconds,
 			Description:  "Optional duration in seconds the pod needs to terminate gracefully. May be decreased in delete request. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period will be used instead. The grace period is the duration in seconds after the processes running in the pod are sent a termination signal and the time when the processes are forcibly halted with a kill signal. Set this value longer than the expected cleanup time for your process.",
@@ -344,18 +374,21 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 						Type:         schema.TypeString,
 						Description:  "Effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.",
 						Optional:     true,
+						ForceNew:     !isUpdatable,
 						ValidateFunc: validation.StringInSlice([]string{"NoSchedule", "PreferNoSchedule", "NoExecute"}, false),
 					},
 					"key": {
 						Type:        schema.TypeString,
 						Description: "Key is the taint key that the toleration applies to. Empty means match all taint keys. If the key is empty, operator must be Exists; this combination means to match all values and all keys.",
 						Optional:    true,
+						ForceNew:    !isUpdatable,
 					},
 					"operator": {
 						Type:         schema.TypeString,
 						Description:  "Operator represents a key's relationship to the value. Valid operators are Exists and Equal. Defaults to Equal. Exists is equivalent to wildcard for value, so that a pod can tolerate all taints of a particular category.",
 						Default:      "Equal",
 						Optional:     true,
+						ForceNew:     !isUpdatable,
 						ValidateFunc: validation.StringInSlice([]string{"Exists", "Equal"}, false),
 					},
 					"toleration_seconds": {
@@ -363,12 +396,14 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 						Type:         schema.TypeString,
 						Description:  "TolerationSeconds represents the period of time the toleration (which must be of effect NoExecute, otherwise this field is ignored) tolerates the taint. By default, it is not set, which means tolerate the taint forever (do not evict). Zero and negative values will be treated as 0 (evict immediately) by the system.",
 						Optional:     true,
+						ForceNew:     !isUpdatable,
 						ValidateFunc: validateTypeStringNullableInt,
 					},
 					"value": {
 						Type:        schema.TypeString,
 						Description: "Value is the taint value the toleration matches to. If the operator is Exists, the value should be empty, otherwise just a regular string.",
 						Optional:    true,
+						ForceNew:    !isUpdatable,
 					},
 				},
 			},
@@ -382,21 +417,6 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 			Elem:        volumeSchema(isUpdatable),
 		},
 	}
-
-	if !isUpdatable {
-		for k := range s {
-			if k == "active_deadline_seconds" {
-				// This field is always updatable
-				continue
-			}
-			if k == "container" {
-				// Some fields are always updatable
-				continue
-			}
-			s[k].ForceNew = true
-		}
-	}
-
 	return s
 }
 

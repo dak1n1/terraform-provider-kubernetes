@@ -70,11 +70,11 @@ func TestAccKubernetesDeployment_initContainer(t *testing.T) {
 		CheckDestroy:      testAccCheckKubernetesDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccKubernetesDeploymentConfig_initContainer(name),
+				Config: testAccKubernetesDeploymentConfig_initContainer(name, "busybox"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckKubernetesDeploymentExists(resourceName, &conf),
 					resource.TestCheckResourceAttr("kubernetes_deployment.test", "spec.0.template.0.spec.0.init_container.0.image", "busybox"),
-					resource.TestCheckResourceAttr("kubernetes_deployment.test", "spec.0.template.0.spec.0.init_container.0.name", "init-service"),
+					resource.TestCheckResourceAttr("kubernetes_deployment.test", "spec.0.template.0.spec.0.init_container.0.name", name),
 				),
 			},
 			{
@@ -82,6 +82,38 @@ func TestAccKubernetesDeployment_initContainer(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"metadata.0.resource_version", "wait_for_rollout"},
+			},
+		},
+	})
+}
+
+func TestAccKubernetesDeployment_initContainerForceNew(t *testing.T) {
+	var conf1, conf2 appsv1.Deployment
+	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	resourceName := "kubernetes_deployment.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		IDRefreshName:     "kubernetes_deployment.test",
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckKubernetesDeploymentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccKubernetesDeploymentConfig_initContainer(name, "busybox:1.27"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckKubernetesDeploymentExists(resourceName, &conf1),
+					resource.TestCheckResourceAttr("kubernetes_deployment.test", "spec.0.template.0.spec.0.init_container.0.name", name),
+					resource.TestCheckResourceAttr("kubernetes_deployment.test", "spec.0.template.0.spec.0.init_container.0.image", "busybox:1.27"),
+				),
+			},
+			{
+				Config: testAccKubernetesDeploymentConfig_initContainer("new-name", "busybox:1.28"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckKubernetesDeploymentExists(resourceName, &conf2),
+					resource.TestCheckResourceAttr("kubernetes_deployment.test", "spec.0.template.0.spec.0.init_container.0.name", "new-name"),
+					resource.TestCheckResourceAttr("kubernetes_deployment.test", "spec.0.template.0.spec.0.init_container.0.image", "busybox:1.28"),
+					testAccCheckKubernetesDeploymentForceNew(&conf1, &conf2, false),
+				),
 			},
 		},
 	})
@@ -1203,7 +1235,7 @@ func testAccKubernetesDeploymentConfig_basic(name string) string {
 `, name, defaultNginxImage)
 }
 
-func testAccKubernetesDeploymentConfig_initContainer(name string) string {
+func testAccKubernetesDeploymentConfig_initContainer(name, image string) string {
 	return fmt.Sprintf(`resource "kubernetes_deployment" "test" {
   metadata {
     annotations = {
@@ -1255,8 +1287,8 @@ func testAccKubernetesDeploymentConfig_initContainer(name string) string {
         }
 
         init_container {
-          name    = "init-service"
-          image   = "busybox"
+          name    = "%s"
+          image   = "%s"
           command = ["sh", "-c", "until nslookup init-service.default.svc.cluster.local; do echo waiting for init-service; sleep 2; done"]
 
           resources {
@@ -1283,7 +1315,7 @@ resource "kubernetes_service" "test" {
     }
   }
 }
-`, name)
+`, name, name, image)
 }
 
 func testAccKubernetesDeploymentConfig_modified(name string) string {

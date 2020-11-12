@@ -83,7 +83,7 @@ func TestAccKubernetesReplicationController_basic(t *testing.T) {
 }
 
 func TestAccKubernetesReplicationController_initContainer(t *testing.T) {
-	var conf api.ReplicationController
+	var conf1, conf2 api.ReplicationController
 	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
 
 	resource.Test(t, resource.TestCase{
@@ -93,10 +93,10 @@ func TestAccKubernetesReplicationController_initContainer(t *testing.T) {
 		CheckDestroy:      testAccCheckKubernetesReplicationControllerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccKubernetesReplicationControllerConfig_initContainer(name),
+				Config: testAccKubernetesReplicationControllerConfig_initContainer(name, "busybox:1.27"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckKubernetesReplicationControllerExists("kubernetes_replication_controller.test", &conf),
-					resource.TestCheckResourceAttr("kubernetes_replication_controller.test", "spec.0.template.0.spec.0.init_container.0.image", "busybox"),
+					testAccCheckKubernetesReplicationControllerExists("kubernetes_replication_controller.test", &conf1),
+					resource.TestCheckResourceAttr("kubernetes_replication_controller.test", "spec.0.template.0.spec.0.init_container.0.image", "busybox:1.27"),
 					resource.TestCheckResourceAttr("kubernetes_replication_controller.test", "spec.0.template.0.spec.0.init_container.0.name", "install"),
 					resource.TestCheckResourceAttr("kubernetes_replication_controller.test", "spec.0.template.0.spec.0.init_container.0.command.0", "wget"),
 					resource.TestCheckResourceAttr("kubernetes_replication_controller.test", "spec.0.template.0.spec.0.init_container.0.command.1", "-O"),
@@ -116,7 +116,14 @@ func TestAccKubernetesReplicationController_initContainer(t *testing.T) {
 					resource.TestCheckResourceAttr("kubernetes_replication_controller.test", "spec.0.template.0.spec.0.dns_config.0.option.0.value", "1"),
 					resource.TestCheckResourceAttr("kubernetes_replication_controller.test", "spec.0.template.0.spec.0.dns_config.0.option.1.name", "use-vc"),
 					resource.TestCheckResourceAttr("kubernetes_replication_controller.test", "spec.0.template.0.spec.0.dns_config.0.option.1.value", ""),
-					//          resource.TestCheckResourceAttr("kubernetes_replication_controller.test", "spec.0.template.0.spec.0.dns_policy", "Default"),
+				),
+			},
+			{
+				Config: testAccKubernetesReplicationControllerConfig_initContainer(name, "busybox1.28"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckKubernetesReplicationControllerExists("kubernetes_replication_controller.test", &conf2),
+					resource.TestCheckResourceAttr("kubernetes_replication_controller.test", "spec.0.template.0.spec.0.init_container.0.image", "busybox:1.28"),
+					testAccCheckKubernetesReplicationControllerForceNew(&conf1, &conf2, false),
 				),
 			},
 		},
@@ -134,7 +141,8 @@ func TestAccKubernetesReplicationController_regression(t *testing.T) {
 		CheckDestroy:      testAccCheckKubernetesReplicationControllerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: requiredProviders() + testAccKubernetesReplicationControllerConfig_regression("kubernetes-released", name),
+				Config:             requiredProviders() + testAccKubernetesReplicationControllerConfig_regression("kubernetes-released", name),
+				ExpectNonEmptyPlan: true, // UPDATE FIXME bug has been fixed in 2.0 of the provider, but we're testing 1.13 here
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckKubernetesReplicationControllerExists("kubernetes_replication_controller.test", &conf1),
 					resource.TestCheckResourceAttr("kubernetes_replication_controller.test", "spec.0.template.0.spec.0.init_container.0.image", "busybox"),
@@ -624,7 +632,7 @@ func testAccKubernetesReplicationControllerConfig_basic(name string) string {
 `, name)
 }
 
-func testAccKubernetesReplicationControllerConfig_initContainer(name string) string {
+func testAccKubernetesReplicationControllerConfig_initContainer(name, image string) string {
 	return fmt.Sprintf(`resource "kubernetes_replication_controller" "test" {
   metadata {
     annotations = {
@@ -675,7 +683,7 @@ func testAccKubernetesReplicationControllerConfig_initContainer(name string) str
 
         init_container {
           name    = "install"
-          image   = "busybox"
+          image   = "%s"
           command = ["wget", "-O", "/work-dir/index.html", "http://kubernetes.io"]
 
           volume_mount {
@@ -708,7 +716,7 @@ func testAccKubernetesReplicationControllerConfig_initContainer(name string) str
     }
   }
 }
-`, name)
+`, name, image)
 }
 
 func testAccKubernetesReplicationControllerConfig_modified(name string) string {
