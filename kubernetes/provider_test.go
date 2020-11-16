@@ -16,6 +16,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// Global constants for testing images (reduces the number of docker pulls).
+const (
+	nginxImageVersion    = "nginx:1.19.4"
+	nginxImageVersion1   = "nginx:1.19.3"
+	busyboxImageVersion  = "busybox:1.32.0"
+	busyboxImageVersion1 = "busybox:1.31"
+	alpineImageVersion   = "alpine:3.12.1"
+)
+
 var testAccProvider *schema.Provider
 var testAccExternalProviders map[string]resource.ExternalProvider
 var testAccProviderFactories = map[string]func() (*schema.Provider, error){

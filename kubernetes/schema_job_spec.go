@@ -24,7 +24,7 @@ func jobSpecFields() map[string]*schema.Schema {
 			ForceNew:    true,
 			MaxItems:    1,
 			Elem: &schema.Resource{
-				Schema: podSpecFields(false, false, false),
+				Schema: podSpecFields(false, false),
 			},
 		},
 	}

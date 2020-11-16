@@ -17,7 +17,7 @@ import (
 )
 
 func resourceKubernetesPod() *schema.Resource {
-	podSpecFields := podSpecFields(false, false, false)
+	podSpecFields := podSpecFields(false, false)
 
 	return &schema.Resource{
 		CreateContext: resourceKubernetesPodCreate,

@@ -27,7 +27,7 @@ func TestAccKubernetesJob_wait_for_completion(t *testing.T) {
 		CheckDestroy:      testAccCheckKubernetesJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccKubernetesJobConfig_wait_for_completion(name),
+				Config: testAccKubernetesJobConfig_wait_for_completion(name, busyboxImageVersion),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// NOTE this is to check that Terraform actually waited for the Job to complete
 					// before considering the Job resource as created
@@ -57,6 +57,7 @@ func testAccCheckJobWaited(minDuration time.Duration) func(*terraform.State) err
 func TestAccKubernetesJob_basic(t *testing.T) {
 	var conf api.Job
 	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	imageName := alpineImageVersion
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -66,7 +67,7 @@ func TestAccKubernetesJob_basic(t *testing.T) {
 		CheckDestroy:      testAccCheckKubernetesJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccKubernetesJobConfig_basic(name),
+				Config: testAccKubernetesJobConfig_basic(name, imageName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckKubernetesJobExists("kubernetes_job.test", &conf),
 					resource.TestCheckResourceAttr("kubernetes_job.test", "metadata.0.name", name),
@@ -80,12 +81,12 @@ func TestAccKubernetesJob_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("kubernetes_job.test", "spec.0.completions", "10"),
 					resource.TestCheckResourceAttr("kubernetes_job.test", "spec.0.parallelism", "2"),
 					resource.TestCheckResourceAttr("kubernetes_job.test", "spec.0.template.0.spec.0.container.0.name", "hello"),
-					resource.TestCheckResourceAttr("kubernetes_job.test", "spec.0.template.0.spec.0.container.0.image", "alpine"),
+					resource.TestCheckResourceAttr("kubernetes_job.test", "spec.0.template.0.spec.0.container.0.image", imageName),
 					resource.TestCheckResourceAttr("kubernetes_job.test", "wait_for_completion", "false"),
 				),
 			},
 			{
-				Config: testAccKubernetesJobConfig_modified(name),
+				Config: testAccKubernetesJobConfig_modified(name, imageName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckKubernetesJobExists("kubernetes_job.test", &conf),
 					resource.TestCheckResourceAttr("kubernetes_job.test", "metadata.0.name", name),
@@ -102,7 +103,7 @@ func TestAccKubernetesJob_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("kubernetes_job.test", "spec.0.parallelism", "1"),
 					resource.TestCheckResourceAttr("kubernetes_job.test", "spec.0.manual_selector", "true"),
 					resource.TestCheckResourceAttr("kubernetes_job.test", "spec.0.template.0.spec.0.container.0.name", "hello"),
-					resource.TestCheckResourceAttr("kubernetes_job.test", "spec.0.template.0.spec.0.container.0.image", "alpine"),
+					resource.TestCheckResourceAttr("kubernetes_job.test", "spec.0.template.0.spec.0.container.0.image", imageName),
 					resource.TestCheckResourceAttr("kubernetes_job.test", "wait_for_completion", "false"),
 				),
 			},
@@ -119,22 +120,16 @@ func TestAccKubernetesJob_ttl_seconds_after_finished(t *testing.T) {
 		IDRefreshName: "kubernetes_job.test",
 		IDRefreshIgnore: []string{
 			"spec.0.selector.0.match_expressions.#",
-			"spec.0.selector.0.match_labels.%",
-			"spec.0.template.0.spec.0.container.0.resources.0.limits.#",
-			"spec.0.template.0.spec.0.container.0.resources.0.requests.#",
 		},
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckKubernetesJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccKubernetesJobConfig_ttl_seconds_after_finished(name),
+				Config: testAccKubernetesJobConfig_ttl_seconds_after_finished(name, busyboxImageVersion),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckKubernetesJobExists("kubernetes_job.test", &conf),
-					// FIXME uncomment this check when the TTLSecondsAfterFinished feature gate defaults to true
-					// resource.TestCheckResourceAttr("kubernetes_job.test", "spec.0.ttl_seconds_after_finished", "60"),
+					resource.TestCheckResourceAttr("kubernetes_job.test", "spec.0.ttl_seconds_after_finished", "60"),
 				),
-
-				// FIXME remove this when TTLSecondsAfterFinished defaults to true
 				ExpectNonEmptyPlan: true,
 			},
 		},
@@ -198,7 +193,7 @@ func testAccCheckKubernetesJobExists(n string, obj *api.Job) resource.TestCheckF
 	}
 }
 
-func testAccKubernetesJobConfig_basic(name string) string {
+func testAccKubernetesJobConfig_basic(name, imageName string) string {
 	return fmt.Sprintf(`resource "kubernetes_job" "test" {
   metadata {
     name = "%s"
@@ -213,7 +208,7 @@ func testAccKubernetesJobConfig_basic(name string) string {
       spec {
         container {
           name = "hello"
-          image = "alpine"
+          image = "%s"
           command = ["echo", "'hello'"]
         }
       }
@@ -221,10 +216,10 @@ func testAccKubernetesJobConfig_basic(name string) string {
   }
 
   wait_for_completion = false
-}`, name)
+}`, name, imageName)
 }
 
-func testAccKubernetesJobConfig_ttl_seconds_after_finished(name string) string {
+func testAccKubernetesJobConfig_ttl_seconds_after_finished(name, imageName string) string {
 	return fmt.Sprintf(`resource "kubernetes_job" "test" {
   metadata {
     name = "%s"
@@ -239,16 +234,16 @@ func testAccKubernetesJobConfig_ttl_seconds_after_finished(name string) string {
       spec {
         container {
           name = "hello"
-          image = "alpine"
+          image = "%s"
           command = ["echo", "'hello'"]
         }
       }
     }
   }
-}`, name)
+}`, name, imageName)
 }
 
-func testAccKubernetesJobConfig_wait_for_completion(name string) string {
+func testAccKubernetesJobConfig_wait_for_completion(name, imageName string) string {
 	return fmt.Sprintf(`resource "kubernetes_job" "test" {
   metadata {
     name = "%s"
@@ -261,7 +256,7 @@ func testAccKubernetesJobConfig_wait_for_completion(name string) string {
       spec {
         container {
           name = "wait-test"
-          image = "busybox"
+          image = "%s"
           command = ["sleep", "10"]
         }
       }
@@ -271,10 +266,10 @@ func testAccKubernetesJobConfig_wait_for_completion(name string) string {
   timeouts {
     create = "1m"
   }
-}`, name)
+}`, name, imageName)
 }
 
-func testAccKubernetesJobConfig_modified(name string) string {
+func testAccKubernetesJobConfig_modified(name, imageName string) string {
 	return fmt.Sprintf(`resource "kubernetes_job" "test" {
   metadata {
     name = "%s"
@@ -298,12 +293,12 @@ func testAccKubernetesJobConfig_modified(name string) string {
       spec {
         container {
           name = "hello"
-          image = "alpine"
+          image = "%s"
           command = ["echo", "'hello'"]
         }
       }
     }
   }
   wait_for_completion = false
-}`, name)
+}`, name, imageName)
 }

@@ -183,7 +183,7 @@ func resourceKubernetesDeployment() *schema.Resource {
 										Required:    true,
 										MaxItems:    1,
 										Elem: &schema.Resource{
-											Schema: podSpecFields(true, false, false),
+											Schema: podSpecFields(true, false),
 										},
 									},
 								},
