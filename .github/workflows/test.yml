@@ -1,4 +1,4 @@
-name: Go
+name: Acceptance Tests
 
 on:
   push:
@@ -40,14 +40,13 @@ jobs:
           TF_ACC_TERRAFORM_VERSION: ${{ matrix.terraform_version }}
           TF_ACC: true
         run: gotestsum --junitfile test-result${{matrix.terraform-version}}.xml
-        
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: Unit Test Results (Python ${{ matrix.python-version }})
           path: test-result${{matrix.terraform-version}}.xml
-        
+
   publish-test-results:
     name: "Publish Unit Tests Results"
     needs: acc_test
