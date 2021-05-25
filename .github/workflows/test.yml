@@ -26,6 +26,10 @@ jobs:
         terraform_version:  ${{ fromJson(needs.get_version_matrix.outputs.version_matrix) }}
     steps:
       - uses: actions/checkout@main
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.16'
+      - run: go version
 
       # TODO: simulate today's `make testacc` command by modifying makefile.
       # We'll have to do this in two steps: 1. Pre-test setup, and 2. 'go test', which
@@ -35,11 +39,7 @@ jobs:
           KUBE_CONFIG_PATH: "${HOME}/.kube/config"
           TF_ACC_TERRAFORM_VERSION: ${{ matrix.terraform_version }}
           TF_ACC: true
-          GOROOT: ${{ env.GOROOT_1_16_X64 }}
         run: |
-          tree ${{ env.GOROOT_1_16_X64 }}
-          ls /usr/bin
-          go version
           which go
           go install github.com/gotestyourself/gotestsum@v1.6.4
           minikube start
