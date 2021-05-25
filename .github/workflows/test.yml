@@ -17,6 +17,7 @@ jobs:
       run: scripts/get-version-matrix.sh
     outputs:
       version_matrix: ${{ steps.get_version_matrix.outputs.matrix }}
+
   acc_test:
     needs: get_version_matrix
     runs-on: ubuntu-latest
@@ -27,7 +28,7 @@ jobs:
       - uses: actions/checkout@main
       - uses: engineerd/setup-kind@v0.5.0
       - name: Setup gotestsum
-        uses: autero1/action-gotestsum@v0.1.0
+        uses: autero1/action-gotestsum@b0c1655a9398cfd1068c8f93a33722cf5c75df34
         with:
           gotestsum_version: 0.4.1
 
