@@ -30,27 +30,39 @@ jobs:
         with:
           go-version: '^1.16'
       - run: go version
-
-      # TODO: simulate today's `make testacc` command by modifying makefile.
-      # We'll have to do this in two steps: 1. Pre-test setup, and 2. 'go test', which
-      # is run by gotestsum. Unfortunately, the `go test` command must be run by gotestsum.
-      - name: Acceptance Tests
+      - name: Unit Tests
         env:
-          KUBE_CONFIG_PATH: "${HOME}/.kube/config"
           TF_ACC_TERRAFORM_VERSION: ${{ matrix.terraform_version }}
-          TF_ACC: true
-        run: |
-          which go
-          go install gotest.tools/gotestsum@v1.6.4
-          minikube start
-          gotestsum --junitfile test-results.xml
+        run: gotestsum --junitfile unit-test-results.xml
 
-      - name: Upload Test Results
+#      # TODO: simulate today's `make testacc` command by modifying makefile.
+#      # We'll have to do this in two steps: 1. Pre-test setup, and 2. 'go test', which
+#      # is run by gotestsum. Unfortunately, the `go test` command must be run by gotestsum.
+#      - name: Acceptance Tests
+#        env:
+#          KUBE_CONFIG_PATH: "${HOME}/.kube/config"
+#          TF_ACC_TERRAFORM_VERSION: ${{ matrix.terraform_version }}
+#          TF_ACC: true
+#        run: |
+#          which go
+#          go install gotest.tools/gotestsum@v1.6.4
+#          minikube start
+#          gotestsum --junitfile acceptance-test-results.xml
+#          minikube delete
+
+      - name: Upload Unit Test Results
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: Test Results (Terraform ${{ matrix.terraform-version }})
-          path: test-results.xml
+          name: Test Results
+          path: unit-test-results.xml
+
+#      - name: Upload Acceptance Test Results
+#        if: always()
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: Test Results
+#          path: acceptance-test-results.xml
 
   publish-test-results:
     name: "Publish Tests Results"
