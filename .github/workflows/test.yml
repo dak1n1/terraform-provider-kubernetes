@@ -2,7 +2,7 @@ name: Acceptance Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, update_gh_action ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -37,6 +37,8 @@ jobs:
           TF_ACC: true
           GOROOT: ${{ env.GOROOT_1_16_X64 }}
         run: |
+          tree ${{ env.GOROOT_1_16_X64 }}
+          ls /usr/bin
           go version
           which go
           go install github.com/gotestyourself/gotestsum@v1.6.4
