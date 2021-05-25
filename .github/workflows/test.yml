@@ -26,11 +26,6 @@ jobs:
         terraform_version:  ${{ fromJson(needs.get_version_matrix.outputs.version_matrix) }}
     steps:
       - uses: actions/checkout@main
-      - uses: engineerd/setup-kind@v0.5.0
-      - name: Setup gotestsum
-        uses: autero1/action-gotestsum@b0c1655a9398cfd1068c8f93a33722cf5c75df34
-        with:
-          gotestsum_version: 0.4.1
 
       # TODO: simulate today's `make testacc` command by modifying makefile.
       # We'll have to do this in two steps: 1. Pre-test setup, and 2. 'go test', which
@@ -40,7 +35,11 @@ jobs:
           KUBE_CONFIG_PATH: "${HOME}/.kube/config"
           TF_ACC_TERRAFORM_VERSION: ${{ matrix.terraform_version }}
           TF_ACC: true
-        run: gotestsum --junitfile test-result${{matrix.terraform-version}}.xml
+        run: |
+          go install github.com/gotestyourself/gotestsum@v1.6.4
+          minikube start
+          gotestsum --junitfile test-result${{matrix.terraform-version}}.xml
+
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v2
