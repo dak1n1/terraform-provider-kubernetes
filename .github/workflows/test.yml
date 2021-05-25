@@ -35,7 +35,10 @@ jobs:
           KUBE_CONFIG_PATH: "${HOME}/.kube/config"
           TF_ACC_TERRAFORM_VERSION: ${{ matrix.terraform_version }}
           TF_ACC: true
+          GOROOT: ${{ env.GOROOT_1_16_X64 }}
         run: |
+          go version
+          which go
           go install github.com/gotestyourself/gotestsum@v1.6.4
           minikube start
           gotestsum --junitfile test-results.xml
