@@ -45,7 +45,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: Test Results (Terraform ${{ matrix.terraform-version }})
-          path: test-results.xml
+          path: test-result${{matrix.terraform-version}}.xml
 
   publish-test-results:
     name: "Publish Tests Results"
