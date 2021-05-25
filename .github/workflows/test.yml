@@ -41,7 +41,7 @@ jobs:
           TF_ACC: true
         run: |
           which go
-          go install github.com/gotestyourself/gotestsum@v1.6.4
+          go install gotest.tools/gotestsum@v1.6.4
           minikube start
           gotestsum --junitfile test-results.xml
 
