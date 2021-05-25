@@ -33,7 +33,9 @@ jobs:
       - name: Unit Tests
         env:
           TF_ACC_TERRAFORM_VERSION: ${{ matrix.terraform_version }}
-        run: gotestsum --junitfile unit-test-results.xml
+        run: |
+          go install gotest.tools/gotestsum@v1.6.4
+          gotestsum --junitfile unit-test-results.xml
 
 #      # TODO: simulate today's `make testacc` command by modifying makefile.
 #      # We'll have to do this in two steps: 1. Pre-test setup, and 2. 'go test', which
